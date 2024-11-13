@@ -1,0 +1,103 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[english]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{subcaption} % For subfigures
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{float}
+
+\title{Machine Learning Exercise 1}
+\author{Amélie Assmayr (12007770) \and
+        Konstantinos Damanakis (12106343) \and
+        Teresa Schuch (12007762)}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+This report outlines the experimental design of the application of different classification algorithms across four diverse datasets. The goals is to show the trends in classifier performance, based on dataset properties like size and dimensionality, as well as the impact of preprocessing steps like scaling and different parameter settings.
+
+The report is structured as followed: In Section 2 we introduce the chosen classifier and shortly explain their functionality. Section 3 describes the performance metrics used to evaluate each model across different configurations. Section 4 details the main characteristics of each datasets, the preprocessing steps applied and presents the evaluation results. Finally, in Section 5 discusses the main findings and insights drawn from the analysis.
+
+\section{Classifiers}
+We selected three distinct classifiers: an ensemble method (Random Forest), a margin-based method (SVM), and a distance-based method (KNN).
+
+\subsection{K-nearest-neighbors}
+\subsection{Random Forest}
+Random Forest (RF) is an ensemble  method based on decision trees. It builds multiple decision trees during training and combines their prediction for more accurate and stable results. We chose this algorithm because it is good at handling both numerical and categorical data, making it a robust choice for diverse datasets. Furthermore due to its functionality Random Forests are resistant to overfitting, requires minimal preprocessing and offers offers flexibility through parameter tuning. This makes it useful also for complex and large datasets.
+
+
+\subsection{Support Vector Machines}
+
+\section{Performance Measures}
+In order to ensure that the performance of the classifiers can be meaningfully compared, the following steps were taken:
+\begin{itemize}
+    \item \textbf{Dataset:} The same train/test splits were used across all classifiers to ensure consistency across all experiments.
+    \item \textbf{Parameter changes:} To compare how one hyperparameter affects the outcome, only a single hyperparameter was changed at a time.
+    \item \textbf{Baseline comparison:} The classifiers can be compared based on their baseline performance where no hyperparameters are set.
+\end{itemize}
+
+\subsection{Training time}
+\subsection{Accuracy}
+$\text{Formula} = \frac{TP + TN}{TP + TN + FP + FN}$
+
+Accuracy measures the proportion of correctly classified instances out of all instances. While it’s easy to interpret, it can be misleading, especially in imbalanced datasets, because it doesn't distinguish between false positives and false negatives.
+
+\subsection{Precision}
+$\text{Formula} = \frac{TP}{TP + FP}$
+
+Precision measures how many of the positive predictions were actually correct and therefore measures the model’s ability to precisely identify relevant instances within the data. Either by class or averaged across all classes.
+
+\subsection{Recall}
+$\text{Formula} = \frac{TP}{TP + FN}$
+
+Recall measures how many true positive cases the model was able to identify. Either by class or averaged
+across all classes.
+
+\subsection{F1-score}
+
+$\text{Formula}  = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$
+
+The F1-score balances precision and recall. It thereby gives accurate results even if the dataset is skewed towards certain target classes. It might however be more difficult to immediately understand the score.
+
+\section{Datasets}
+PLOTS: Correlation and Barplot of Target
+
+\subsection{Congressional Voting}
+This dataset contains the voting records of U.S. House of Representatives members. It has 18 columns and 218 observation, making it one of the smaller datasets used. It includes voting data on 16 key issues, where each vote is recorded as "Yes," "No," or "Unknown." The target variable indicates whether each representative is a Democrat or Republican. Additionally, there is an ID column for each representative.
+
+
+\subsubsection{Preprocessing}
+First, a LabelEncoder is applied to convert the categorical variables into a binary format.  For the target variable, Democrats are encoded as 0 and Republicans as 1.  n the vote columns, 'no' is encoded as 0 and 'yes' as 1. Any 'unknown' values are replaced with NaN to mark them as missing. Next, rows with more than half of their values missing are removed from the dataset. The remaining missing values are then imputed by filling them with the most frequent value in each column. Since the dataset consists only of binary data, there is no need for additional transformations like scaling or outlier handling. 
+
+\subsubsection{Results}
+
+\subsection{Amazon Reviews}
+\subsubsection{Preprocessing}
+\subsubsection{Results}
+
+\subsection{Road Traffic Accidents}
+\subsubsection{Preprocessing}
+\subsubsection{Results}
+
+\subsection{Machine Failure}
+\subsubsection{Preprocessing}
+\subsubsection{Results}
+
+
+\section{Discussion of Findings}
+
+
+
+\section{Notes}
+
+\end{document}
