@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from imblearn.over_sampling import SMOTE
 import time
 from tqdm import tqdm
+import os
+import pickle
 
 
 class DataProcessor:
@@ -24,7 +26,7 @@ class DataProcessor:
         """
             Splits the dataset into training and testing sets.
         """
-        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size=test_size, random_state=123)
+        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size=test_size, random_state=42)
 
         df_train = X_train.copy()
         df_train[self.target_column] = y_train
@@ -37,7 +39,7 @@ class DataProcessor:
         """
             Create train and validation sets from training data.
         """
-        X_train, X_valid, y_train, y_valid = train_test_split(self.X, self.y, test_size=valid_size, random_state=123)
+        X_train, X_valid, y_train, y_valid = train_test_split(self.X, self.y, test_size=valid_size, random_state=42)
 
         return X_train, y_train, X_valid, y_valid
 
@@ -63,7 +65,7 @@ class ModelTrainer:
             X_valid = scaler.fit_transform(X_valid)
 
         if balance:
-            smote = SMOTE(random_state=42)
+            smote = SMOTE(random_state=123)
             X_train, y_train = smote.fit_resample(X_train, y_train)
 
         start = time.time()
@@ -103,9 +105,9 @@ class ModelTrainer:
         rf_grid = RandomForestClassifier(random_state=123)
         gr_space = {
             'max_depth': [None, 10],
-            'n_estimators': [100, 200],
-            'min_samples_leaf': [1, 10],
-            'min_samples_split': [2, 10]
+            'n_estimators': [100, 200, 400],
+            'min_samples_leaf': [1, 5, 10],
+            'min_samples_split': [2, 5, 10]
         }
 
         scoring = {
@@ -224,6 +226,9 @@ def print_hyperparam_results(param_effect_scores, best_params, best_score):
 
 
 def executor(df, target_column, dataset_name):
+    X = df.drop(columns=[target_column])
+    y = df[target_column]
+
     processor = DataProcessor(df, target_column)
 
     X_train, y_train, X_valid, y_valid = processor.create_dataset(0.2)
@@ -244,10 +249,40 @@ def executor(df, target_column, dataset_name):
     param_effect_scores, best_params, best_score = model_trainer.hyperparameter_tuning(X_train, y_train)
     print_hyperparam_results(param_effect_scores, best_params, best_score)
 
+    # Train the best model
+    best_model = RandomForestClassifier(**best_params, random_state=123)
+    best_model.fit(X, y)
+
+    return best_model
+
+
+def predict_on_testset(model, test_file, output_file, label_encoder):
+    """
+        Predict outcomes on the test dataset using the given model.
+    """
+
+    df_test = pd.read_csv(test_file, sep = ",")
+
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+    with open(label_encoder, 'rb') as f:
+        encoder = pickle.load(f)
+
+    with open(output_file, 'w') as f:
+        f.write('ID,"class"\n')
+
+        for _, row in df_test.iterrows():
+            row_id = row['ID']
+            features = row.drop('ID').values.reshape(1, -1)
+            prediction = model.predict(features)[0]
+            prediction_decoded = encoder.inverse_transform([prediction])[0]
+
+            f.write(f"{row_id},{prediction_decoded}\n")
+
 
 if __name__ == '__main__':
     # Load datasets
-    df_train_voting = pd.read_csv('../data/congressionalVoting/voting_imputed.csv', sep=",")
+    df_train_voting = pd.read_csv('../data/congressionalVoting/voting_cleaned.csv', sep=",")
     df_machine = pd.read_csv('../data/machine/Machine_cleaned.csv', sep=",")
     df_rta = pd.read_csv('../data/RTA/RTA_encoded.csv', sep=",")
     df_train_reviews = pd.read_csv('../data/reviews/reviews_cleaned.csv', sep=",")
@@ -262,17 +297,29 @@ if __name__ == '__main__':
     # Load datasets and run executor
     datasets = [
         (df_train_voting, 'class', 'Congressional Voting'),
-        (df_train_machine, 'fail', 'Machine Failure'),
-        (df_train_rta, 'Accident_severity', 'Road Traffic Accidents'),
         (df_train_reviews, 'Class', 'Amazon Reviews')
+     #   (df_train_machine, 'fail', 'Machine Failure'),
+      #  (df_train_rta, 'Accident_severity', 'Road Traffic Accidents'),
+
 
     ]
 
-    for df, target, name in datasets:
-        executor(df, target, name)
+    best_models = {}
 
-    ### Balancing RTA:
-    balance_plot(df_train_rta, 'Accident_severity', '../plots/RTA_balancing')
+    for df, target, name in datasets:
+        best_model = executor(df, target, name)
+        best_models[name] = best_model
+
+    predict_on_testset(best_models['Congressional Voting'], '../data/congressionalVoting/voting_cleaned_test.csv', '../predictions/predictions_voting_group08.csv', '../label_encoder_voting.pkl')
+    predict_on_testset(best_models['Amazon Reviews'], '../data/reviews/amazon_review_ID.shuf.tes.csv', '../predictions/predictions_review_group08.csv', '../label_encoder_review.pkl')
+
+
+### Balancing RTA:
+  #  balance_plot(df_train_rta, 'Accident_severity', '../plots/RTA_balancing')
 
     ### Scaling Machine Failure
-    scale_plot(df_train_machine, 'fail', '../plots/Machine_scaling.png')
+  #  scale_plot(df_train_machine, 'fail', '../plots/Machine_scaling.png')
+
+
+
+
