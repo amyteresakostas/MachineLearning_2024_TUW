@@ -434,4 +434,122 @@ print(f"Best cross-validation recall: {grid_search.cv_results_['mean_test_recall
 print(f"Best cross-validation F1 Score: {grid_search.cv_results_['mean_test_f1_weighted'][grid_search.best_index_]:.4f}")
 print("Time for Hypertuning: ", time.time()-start)
 
+
+######################################## AMAZON REWIEV DATASET ########################################
+print("----------------------------------------------------------------------------------------------")
+print("--------------------------------------- AMAZON REWIEV ----------------------------------------")
+print("----------------------------------------------------------------------------------------------")
+review_data = pd.read_csv("C:/Users/ameli/OneDrive/Studium/TU Wien/WS2024/ML/Exercise1/Reviews/amazon_review_ID.shuf.lrn.csv")
+review_data = review_data.drop(columns='ID')
+review_data['Class'] = review_data['Class'].astype('category')
+
+# Split into training and testing sets (80/20 split)
+train_data, test_data = train_test_split(review_data, test_size=0.2, random_state=42)
+X_train = train_data.drop('Class', axis=1); y_train = train_data['Class']
+X_test = test_data.drop('Class', axis=1); y_test = test_data['Class']
+
+### We first tried to do the classification on the datset without scaling, without crossvalidation and k=3
+print("Review - Without Scaling:")
+knn = KNeighborsClassifier(n_neighbors=3)
+holdout_model(knn, X_train, y_train, X_test, y_test, "Baseline_No_Scaling", save_path="plots/amazon_cm_withoutScaling.png")
+
+### KNN with scaling
+print("----------------------------------------------------------------------------------------------")
+print("KNN with Scaling")
+X_train_scaled, X_test_scaled = scale_data(X_train, X_test)
+scaled_knn = KNeighborsClassifier(n_neighbors=3)
+holdout_model(scaled_knn, X_train_scaled, y_train, X_test_scaled, y_test, "With_Scaling", save_path="plots/amazon_cm_withScaling.png")
+
+### Perform 5-fold cross-validation
+print("----------------------------------------------------------------------------------------------")
+print("Machine Failure - With Cross Validation:")
+cross_validate_model(knn, X_train, y_train, cv=5)
+
+# Finding optimal k
+print("----------------------------------------------------------------------------------------------")
+print("Finding optimal k:")
+optimal_k = find_optimal_k(1, 30, X_train, y_train, cv=5, save_path="plots/voting_optimalK.png")
+print("optimal k: ", optimal_k)
+
+### Dimensionality Reduction
+print("----------------------------------------------------------------------------------------------")
+print("Dimensionality Reduction")
+start = time.time()
+X = review_data.drop(columns='Class')
+y = review_data['Class']
+corr_matrix = X.corr().abs()
+upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+to_drop = [column for column in upper.columns if any(upper[column] > 0.9)]
+X = X.drop(columns=to_drop)
+print(f"Reduced features from {review_data.shape[1] - 1} to {X.shape[1]} after correlation analysis.")
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+knn = KNeighborsClassifier(n_neighbors=optimal_k)
+cross_validate_model(knn, X_train, y_train, cv=5)
+print(time.time() - start)
+
+### Oversampling using RandomOverSampler
+print("----------------------------------------------------------------------------------------------")
+print("Oversampling using RandomOverSampler")
+ros = RandomOverSampler(random_state=42)
+X_train_resampled, y_train_resampled = ros.fit_resample(X_train, y_train)
+#print(f"Original class distribution: {y_train.value_counts()}")
+#print(f"Resampled class distribution: {pd.Series(y_train_resampled).value_counts()}")
+oversampled_knn = KNeighborsClassifier(n_neighbors=optimal_k)
+cross_validate_model(oversampled_knn, X_train_resampled, y_train_resampled, cv=5)
+
+# Finding optimal k
+print("----------------------------------------------------------------------------------------------")
+print("Finding optimal k:")
+optimal_k = find_optimal_k(1, 30, X_train, y_train, cv=5, save_path="plots/amazon_optimalK.png")
+print(f"Voting - With optimal k={optimal_k} (Cross-validation):")
+k_knn = KNeighborsClassifier(n_neighbors=optimal_k)
+cross_validate_model(k_knn, X_train_scaled, y_train, cv=5)
+
+# Finding optimal weight
+print("----------------------------------------------------------------------------------------------")
+print("Finding optimal weight:")
+optimal_weight = find_optimal_weight(optimal_k, X_train, y_train, cv=5)
+weight_knn = KNeighborsClassifier(n_neighbors=optimal_k, weights=optimal_weight)
+cross_validate_model(weight_knn, X_train, y_train, cv=5)
+
+# Finding optimal distance metric
+print("----------------------------------------------------------------------------------------------")
+print("Finding optimal metric:")
+optimal_metric = find_optimal_metric(optimal_k, X_train, y_train, cv=5)
+metric_knn = KNeighborsClassifier(n_neighbors=optimal_k, metric=optimal_metric)
+cross_validate_model(metric_knn, X_train, y_train, cv=3)
+
+# Finding optimal algorithm
+print("----------------------------------------------------------------------------------------------")
+print("Finding optimal algorithm:")
+optimal_algorithm = find_optimal_algorithm(optimal_k, X_train, y_train, cv=5)
+algorithm_knn = KNeighborsClassifier(n_neighbors=optimal_k, algorithm=optimal_algorithm)
+cross_validate_model(algorithm_knn, X_train, y_train, cv=5)
+
+# Hyperparameter tuning (finding the best parameter combinations)
+print("----------------------------------------------------------------------------------------------")
+print("Hyperparameter tuning (finding best parameter combinations):")
+param_grid = {
+    'n_neighbors': range(1, 25),
+    'weights': ['uniform', 'distance'],
+    'metric': ['minkowski', 'euclidean', 'manhattan', 'chebyshev'],
+    'algorithm': ['ball_tree', 'kd_tree', 'brute']
+}
+scoring = {
+    'accuracy': 'accuracy',
+    'precision_weighted': make_scorer(precision_score, average='weighted', zero_division=1),
+    'recall_weighted': make_scorer(recall_score, average='weighted', zero_division=1),
+    'f1_weighted': make_scorer(f1_score, average='weighted', zero_division=1)
+}
+start = time.time()
+knn = KNeighborsClassifier()
+grid_search = GridSearchCV(knn, param_grid, cv=3, scoring=scoring, refit='accuracy', n_jobs=-1)
+grid_search.fit(X_train_scaled, y_train)
+print(f"Best parameters: {grid_search.best_params_}")
+print(f"Best cross-validation accuracy: {grid_search.cv_results_['mean_test_accuracy'][grid_search.best_index_]:.4f}")
+print(f"Best cross-validation precision: {grid_search.cv_results_['mean_test_precision_weighted'][grid_search.best_index_]:.4f}")
+print(f"Best cross-validation recall: {grid_search.cv_results_['mean_test_recall_weighted'][grid_search.best_index_]:.4f}")
+print(f"Best cross-validation F1 Score: {grid_search.cv_results_['mean_test_f1_weighted'][grid_search.best_index_]:.4f}")
+print("Time for Hypertuning: ", time.time()-start)
+
 log_file.close()
