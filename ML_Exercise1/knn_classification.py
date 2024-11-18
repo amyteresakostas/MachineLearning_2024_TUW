@@ -151,7 +151,7 @@ def find_optimal_algorithm(k, X_train, y_train, cv):
 
 os.chdir("C:/Users/ameli/OneDrive/Studium/TU Wien/WS2024/ML/Exercise1")
 os.makedirs("plots", exist_ok=True)
-log_file = open("knnClassification.txt", "w")
+log_file = open("knnClassification_performanceMeasures.txt", "w")
 sys.stdout = log_file
 
 print("K NEAREST NEIGHBOR CLASSIFICATION")
@@ -177,13 +177,15 @@ print("Voting - Without Scaling:")
 knn = KNeighborsClassifier(n_neighbors=3)
 holdout_model(knn, X_train, y_train, X_test, y_test, title="Confusion Matrix - No Scaling", save_path="plots/voting_cm_withoutScaling.png")
 
+"""
 # Perform KNN classification with scaling and k=3
 print("----------------------------------------------------------------------------------------------")
 print("Voting - With Scaling:")
 X_train_scaled, X_test_scaled = scale_data(X_train, X_test)
 holdout_model(knn, X_train_scaled, y_train, X_test_scaled, y_test, title="Confusion Matrix - With Scaling", save_path="plots/voting_cm_withScaling.png")
+"""
 
-# Perform 10-fold cross-validation with scaling and k=3
+# Perform 10-fold cross-validation
 print("----------------------------------------------------------------------------------------------")
 print("Voting - With Cross Validation:")
 cross_validate_model(knn, X_train, y_train, cv=10)
@@ -191,7 +193,7 @@ cross_validate_model(knn, X_train, y_train, cv=10)
 # Finding optimal k
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal k:")
-optimal_k = find_optimal_k(1, 25, X_train, y_train, cv=10, save_path="plots/voting_optimalK.png")
+optimal_k = find_optimal_k(1, 30, X_train, y_train, cv=10, save_path="plots/voting_optimalK.png")
 print(f"Voting - With optimal k={optimal_k} (Cross-validation):")
 k_knn = KNeighborsClassifier(n_neighbors=optimal_k)
 cross_validate_model(k_knn, X_train, y_train, cv=10)
@@ -213,17 +215,17 @@ cross_validate_model(metric_knn, X_train, y_train, cv=10)
 # Finding optimal algorithm
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal algorithm:")
-optimal_algorithm = find_optimal_algorithm(optimal_k, X_train_scaled, y_train, cv=10)
+optimal_algorithm = find_optimal_algorithm(optimal_k, X_train, y_train, cv=10)
 algorithm_knn = KNeighborsClassifier(n_neighbors=optimal_k, algorithm=optimal_algorithm)
-cross_validate_model(algorithm_knn, X_train_scaled, y_train, cv=10)
+cross_validate_model(algorithm_knn, X_train, y_train, cv=10)
 
 # Hyperparameter tuning (finding the best parameter combinations)
 print("----------------------------------------------------------------------------------------------")
 print("Hyperparameter tuning (finding best parameter combinations):")
 param_grid = {
-    'n_neighbors': range(1, 25),
+    'n_neighbors': range(1, 30),
     'weights': ['uniform', 'distance'],
-    'metric': ['minkowski', 'euclidean', 'manhattan', 'chebyshev'],
+    'metric': ['minkowski', 'euclidean', 'manhattan'],
     'algorithm': ['ball_tree', 'kd_tree', 'brute']
 }
 
@@ -271,16 +273,23 @@ X_train_scaled, X_test_scaled = scale_data(X_train, X_test)
 knn = KNeighborsClassifier(n_neighbors=3)
 holdout_model(knn, X_train_scaled, y_train, X_test_scaled, y_test, title="Confusion Matrix - With Scaling", save_path="plots/machine_cm_withScaling.png")
 
+# Perform 10-fold cross-validation without scaling and k=3
+print("----------------------------------------------------------------------------------------------")
+print("Machine Failure - With Cross Validation, unscaled:")
+knn = KNeighborsClassifier(n_neighbors=3)
+cross_validate_model(knn, X_train, y_train, cv=10)
+
+
 # Perform 10-fold cross-validation with scaling and k=3
 print("----------------------------------------------------------------------------------------------")
-print("Machine Failure - With Cross Validation:")
+print("Machine Failure - With Cross Validation, scaled:")
 knn = KNeighborsClassifier(n_neighbors=3)
 cross_validate_model(knn, X_train_scaled, y_train, cv=10)
 
 # Finding optimal k
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal k:")
-optimal_k = find_optimal_k(1, 25, X_train_scaled, y_train, cv=10, save_path="plots/voting_optimalK.png")
+optimal_k = find_optimal_k(1, 30, X_train_scaled, y_train, cv=10, save_path="plots/voting_optimalK.png")
 print(f"Voting - With optimal k={optimal_k} (Cross-validation):")
 k_knn = KNeighborsClassifier(n_neighbors=optimal_k)
 cross_validate_model(k_knn, X_train_scaled, y_train, cv=10)
@@ -310,9 +319,9 @@ cross_validate_model(algorithm_knn, X_train_scaled, y_train, cv=10)
 print("----------------------------------------------------------------------------------------------")
 print("Hyperparameter tuning (finding best parameter combinations):")
 param_grid = {
-    'n_neighbors': range(1, 25),
+    'n_neighbors': range(1, 30),
     'weights': ['uniform', 'distance'],
-    'metric': ['minkowski', 'euclidean', 'manhattan', 'chebyshev'],
+    'metric': ['minkowski', 'euclidean', 'manhattan'],
     'algorithm': ['ball_tree', 'kd_tree', 'brute']
 }
 scoring = {
@@ -349,6 +358,7 @@ X_train = pd.get_dummies(X_train)
 X_test = pd.get_dummies(X_test)
 X_train, X_test = X_train.align(X_test, join='left', axis=1, fill_value=0)
 
+
 # Baseline - KNN without scaling
 print("Baseline - KNN without Scaling")
 baseline_knn = KNeighborsClassifier(n_neighbors=3)
@@ -363,11 +373,17 @@ holdout_model(scaled_knn, X_train_scaled, y_train, X_test_scaled, y_test, "With_
 
 # KNN with cross-validation
 print("----------------------------------------------------------------------------------------------")
-print("KNN with Cross Validation (10-fold)")
+print("KNN with Cross Validation (10-fold), unscaled")
 cross_validate_model(scaled_knn, X_train, y_train, cv=10)
 
+# KNN with cross-validation
+print("----------------------------------------------------------------------------------------------")
+print("KNN with Cross Validation (10-fold), scaled")
+cross_validate_model(scaled_knn, X_train_scaled, y_train, cv=10)
+
+
 # Finding optimal k
-optimal_k = find_optimal_k(1, 15, X_train, y_train, cv=10, save_path="plots/voting_optimalK.png")
+optimal_k = find_optimal_k(1, 30, X_train, y_train, cv=10, save_path="plots/voting_optimalK.png")
 
 # Oversampling using RandomOverSampler
 print("----------------------------------------------------------------------------------------------")
@@ -382,30 +398,30 @@ cross_validate_model(oversampled_knn, X_train_resampled, y_train_resampled, cv=1
 # Finding optimal k
 print("----------------------------------------------------------------------------------------------")
 print("# Finding optimal k")
-optimal_k = find_optimal_k(1, 15, X_train_resampled, y_train_resampled, cv=5, save_path="plots/rta_optimalK_oversampled.png")
+optimal_k = find_optimal_k(1, 15, X_train_resampled, y_train_resampled, cv=10, save_path="plots/rta_optimalK_oversampled.png")
 final_knn = KNeighborsClassifier(n_neighbors=optimal_k)
-cross_validate_model(final_knn, X_train_resampled, y_train_resampled, cv=5)
+cross_validate_model(final_knn, X_train_resampled, y_train_resampled, cv=10)
 
 # Finding optimal weight
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal weight:")
-optimal_weight = find_optimal_weight(optimal_k, X_train, y_train, cv=5)
+optimal_weight = find_optimal_weight(optimal_k, X_train_resampled, y_train_resampled, cv=10)
 weight_knn = KNeighborsClassifier(n_neighbors=optimal_k, weights=optimal_weight)
-cross_validate_model(weight_knn, X_train_resampled, y_train_resampled, cv=5)
+cross_validate_model(weight_knn, X_train_resampled, y_train_resampled, cv=10)
 
 # Finding optimal distance metric
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal metric:")
-optimal_metric = find_optimal_metric(optimal_k, X_train, y_train, cv=5)
+optimal_metric = find_optimal_metric(optimal_k, X_train_resampled, y_train_resampled, cv=10)
 metric_knn = KNeighborsClassifier(n_neighbors=optimal_k, metric=optimal_metric)
-cross_validate_model(metric_knn, X_train_resampled, y_train_resampled, cv=5)
+cross_validate_model(metric_knn, X_train_resampled, y_train_resampled, cv=10)
 
 # Finding optimal algorithm
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal algorithm:")
-optimal_algorithm = find_optimal_algorithm(optimal_k, X_train, y_train, cv=5)
+optimal_algorithm = find_optimal_algorithm(optimal_k, X_train_resampled, y_train_resampled, cv=10)
 algorithm_knn = KNeighborsClassifier(n_neighbors=optimal_k, algorithm=optimal_algorithm)
-cross_validate_model(algorithm_knn, X_train_resampled, y_train_resampled, cv=5)
+cross_validate_model(algorithm_knn, X_train_resampled, y_train_resampled, cv=10)
 
 
 # Hyperparameter tuning (finding the best parameter combinations)
@@ -414,8 +430,7 @@ print("Hyperparameter tuning (finding best parameter combinations):")
 param_grid = {
     'n_neighbors': range(1,25),
     'weights': ['uniform', 'distance'],
-    'metric': ['minkowski', 'chebyshev', 'euclidean', 'manhattan'],
-    'algorithm': ['kd_tree']
+    'metric': ['minkowski', 'chebyshev', 'euclidean', 'manhattan']
 }
 scoring = {
     'accuracy': 'accuracy',
@@ -425,8 +440,8 @@ scoring = {
 }
 start = time.time()
 knn = KNeighborsClassifier()
-grid_search = GridSearchCV(knn, param_grid, cv=3, scoring=scoring, refit='accuracy', n_jobs=-1)
-grid_search.fit(X_train, y_train)
+grid_search = GridSearchCV(knn, param_grid, cv=10, scoring=scoring, refit='accuracy', n_jobs=-1)
+grid_search.fit(X_train_resampled, y_train_resampled,)
 print(f"Best parameters: {grid_search.best_params_}")
 print(f"Best cross-validation accuracy: {grid_search.cv_results_['mean_test_accuracy'][grid_search.best_index_]:.4f}")
 print(f"Best cross-validation precision: {grid_search.cv_results_['mean_test_precision_weighted'][grid_search.best_index_]:.4f}")
@@ -448,27 +463,33 @@ train_data, test_data = train_test_split(review_data, test_size=0.2, random_stat
 X_train = train_data.drop('Class', axis=1); y_train = train_data['Class']
 X_test = test_data.drop('Class', axis=1); y_test = test_data['Class']
 
-### We first tried to do the classification on the datset without scaling, without crossvalidation and k=3
+### KNN without scaling - holdout
 print("Review - Without Scaling:")
 knn = KNeighborsClassifier(n_neighbors=3)
 holdout_model(knn, X_train, y_train, X_test, y_test, "Baseline_No_Scaling", save_path="plots/amazon_cm_withoutScaling.png")
 
-### KNN with scaling
+### KNN with scaling - holdout
 print("----------------------------------------------------------------------------------------------")
 print("KNN with Scaling")
 X_train_scaled, X_test_scaled = scale_data(X_train, X_test)
 scaled_knn = KNeighborsClassifier(n_neighbors=3)
 holdout_model(scaled_knn, X_train_scaled, y_train, X_test_scaled, y_test, "With_Scaling", save_path="plots/amazon_cm_withScaling.png")
+#optimal_k = 1
 
 ### Perform 5-fold cross-validation
 print("----------------------------------------------------------------------------------------------")
-print("Machine Failure - With Cross Validation:")
+print("Machine Failure - With Cross Validation - unscaled data:")
 cross_validate_model(knn, X_train, y_train, cv=5)
+
+### Perform 5-fold cross-validation
+print("----------------------------------------------------------------------------------------------")
+print("Machine Failure - With Cross Validation - scaled data:")
+cross_validate_model(knn, X_train_scaled, y_train, cv=5)
 
 # Finding optimal k
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal k:")
-optimal_k = find_optimal_k(1, 30, X_train, y_train, cv=5, save_path="plots/voting_optimalK.png")
+optimal_k = find_optimal_k(1, 15, X_train, y_train, cv=5, save_path="plots/amazon_optimalK.png")
 print("optimal k: ", optimal_k)
 
 ### Dimensionality Reduction
@@ -491,7 +512,7 @@ print(time.time() - start)
 print("----------------------------------------------------------------------------------------------")
 print("Oversampling using RandomOverSampler")
 ros = RandomOverSampler(random_state=42)
-X_train_resampled, y_train_resampled = ros.fit_resample(X_train, y_train)
+X_train_resampled, y_train_resampled = ros.fit_resample(X_train_scaled, y_train)
 #print(f"Original class distribution: {y_train.value_counts()}")
 #print(f"Resampled class distribution: {pd.Series(y_train_resampled).value_counts()}")
 oversampled_knn = KNeighborsClassifier(n_neighbors=optimal_k)
@@ -500,37 +521,37 @@ cross_validate_model(oversampled_knn, X_train_resampled, y_train_resampled, cv=5
 # Finding optimal k
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal k:")
-optimal_k = find_optimal_k(1, 30, X_train, y_train, cv=5, save_path="plots/amazon_optimalK.png")
+optimal_k = find_optimal_k(1, 15, X_train_resampled, y_train_resampled, cv=5, save_path="plots/amazon_optimalK.png")
 print(f"Voting - With optimal k={optimal_k} (Cross-validation):")
 k_knn = KNeighborsClassifier(n_neighbors=optimal_k)
-cross_validate_model(k_knn, X_train_scaled, y_train, cv=5)
+cross_validate_model(k_knn, X_train_resampled, y_train_resampled, cv=5)
 
 # Finding optimal weight
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal weight:")
-optimal_weight = find_optimal_weight(optimal_k, X_train, y_train, cv=5)
+optimal_weight = find_optimal_weight(optimal_k, X_train_resampled, y_train_resampled, cv=5)
 weight_knn = KNeighborsClassifier(n_neighbors=optimal_k, weights=optimal_weight)
-cross_validate_model(weight_knn, X_train, y_train, cv=5)
+cross_validate_model(weight_knn, X_train_resampled, y_train_resampled, cv=5)
 
 # Finding optimal distance metric
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal metric:")
-optimal_metric = find_optimal_metric(optimal_k, X_train, y_train, cv=5)
+optimal_metric = find_optimal_metric(optimal_k, X_train_resampled, y_train_resampled, cv=5)
 metric_knn = KNeighborsClassifier(n_neighbors=optimal_k, metric=optimal_metric)
-cross_validate_model(metric_knn, X_train, y_train, cv=3)
+cross_validate_model(metric_knn, X_train_resampled, y_train_resampled, cv=5)
 
 # Finding optimal algorithm
 print("----------------------------------------------------------------------------------------------")
 print("Finding optimal algorithm:")
-optimal_algorithm = find_optimal_algorithm(optimal_k, X_train, y_train, cv=5)
+optimal_algorithm = find_optimal_algorithm(optimal_k, X_train_resampled, y_train_resampled, cv=5)
 algorithm_knn = KNeighborsClassifier(n_neighbors=optimal_k, algorithm=optimal_algorithm)
-cross_validate_model(algorithm_knn, X_train, y_train, cv=5)
+cross_validate_model(algorithm_knn, X_train_resampled, y_train_resampled, cv=5)
 
 # Hyperparameter tuning (finding the best parameter combinations)
 print("----------------------------------------------------------------------------------------------")
 print("Hyperparameter tuning (finding best parameter combinations):")
 param_grid = {
-    'n_neighbors': range(1, 25),
+    'n_neighbors': range(1, 15),
     'weights': ['uniform', 'distance'],
     'metric': ['minkowski', 'euclidean', 'manhattan', 'chebyshev'],
     'algorithm': ['ball_tree', 'kd_tree', 'brute']
@@ -543,8 +564,8 @@ scoring = {
 }
 start = time.time()
 knn = KNeighborsClassifier()
-grid_search = GridSearchCV(knn, param_grid, cv=3, scoring=scoring, refit='accuracy', n_jobs=-1)
-grid_search.fit(X_train_scaled, y_train)
+grid_search = GridSearchCV(knn, param_grid, cv=5, scoring=scoring, refit='accuracy', n_jobs=-1)
+grid_search.fit(X_train_resampled, y_train_resampled)
 print(f"Best parameters: {grid_search.best_params_}")
 print(f"Best cross-validation accuracy: {grid_search.cv_results_['mean_test_accuracy'][grid_search.best_index_]:.4f}")
 print(f"Best cross-validation precision: {grid_search.cv_results_['mean_test_precision_weighted'][grid_search.best_index_]:.4f}")
