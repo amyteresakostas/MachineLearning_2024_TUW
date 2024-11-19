@@ -104,7 +104,7 @@ First, a LabelEncoder is applied to convert the categorical variables into a bin
 \subsubsection{Results}
 
 \subsubsection*{Support Vector Machines}
-The classification of the preprocessed dataset with Support Vector Machines gives very high metrics over a different range of hyperparameters, as it can be seen in Table \ref{table:votings_SVM}. Either linear, rbf or polynomial kernels achieve high performance. Also, the train times are very small for all of the kernels and parameter combinations. Efficiency and effectiveness are satisfied by SVM for this given dataset. This indicates that the preprocessed dataset has a clear structure. Therefore, there is no optimal kernel selection for this dataset, as high performance can be achieved with any of them, if the model is tuned to the optimal hyperparameters.
+The classification of the preprocessed dataset with Support Vector Machines gives very high metrics over a different range of hyperparameters, as it can be seen in Table \ref{table:votings_SVM}. Either linear, rbf or polynomial kernels achieve high performance, if they are tuned to the right parameters. Also, the train times are very small for all of the kernels and parameter combinations. Both effectiveness and efficiency are satisfied, indicating that the preprocessed dataset has a clear structure.
 \begin{table}[h!]
 \centering
 \begin{tabular}{||c c c c c c c c c||} 
@@ -124,8 +124,8 @@ The classification of the preprocessed dataset with Support Vector Machines give
 \end{table}
 \\
 Among the parameters that were tested, the model has lower performance for non-linear kernels when the gamma hyperparameter is set too low. In particular, the model has a poorer performance for the rbf kernel, when the combination of $\gamma$ = 0.01 and C = 0.1 is used, and for poly kernel, when $\gamma$ = 0.1 and C $<$ 1.0. Using small $\gamma$, smoothens the decision boundary and oversimplifies the model that consequently for this given dataset, fails to classify correctly the different patterns. This is observed also for the rbf kernel, however when choosing C $\ge$ 1, due to the fact that the missclassifications are minimized, the performance of the model is improved in classifying the data. 
-\\The processing time is negligible for all tested kernels and hyperparameters and since high accuracy and precision can be achieved with all kernels, the linear kernel would be chosen for this model due to its simplicity. The metrics for linear kernel do not change when different range of C parameter is chosen, therefore the model could be tuned to C=1.
-\\Table \ref{table:votings_SVM_cross} shows a comparison of the metrics between the hold-out and the 10-fold cross-validation method, for linear kernel and C=1. A small improvement of effectiveness is observed with the cross-validation method that can be due to the fact that this method averages the performance over different splits.
+\\Performing the hyperparameter tuning with the scikit function GridSearchCV with the same input ranges as in the manual investigation, a linear kernel with C = 0.1 gives the highest accuracy of 0.970. The holdout method estimates slightly lower value as shown in Table \ref{table:votings_SVM_cross} but this should be related to the different splitting as well as the averaging that is performed by the GridSearchCV method.
+\\ Table \ref{table:votings_SVM_cross} shows a comparison of the metrics between the hold-out and the 10-fold cross-validation method, for linear kernel and C = 1. A small improvement of effectiveness is observed with the cross-validation method that can be due to the fact that this method averages the performance over different splits. 
 \begin{table}[h!]
 \centering
 \begin{tabular}{||c c c c c||} 
@@ -133,10 +133,10 @@ Among the parameters that were tested, the model has lower performance for non-l
 Method &  Accuracy & Precision & Recall & F1 score \\ [0.5ex] 
  \hline\hline
 hold-out & 0.954 & 0.954 & 0.954 & 0.954  \\  
- 10-fold cross validation &  0.965&  0.968 & 0.965& 0.9659 \\ [1ex] 
+ 10-fold cross validation &  0.959&  0.963 &  0.959& 0.9659 \\ [1ex] 
  \hline
 \end{tabular}
-\caption{Table including comparison of metrics for hold-out nad 10-fold cross validation method, for linear kernel and C = 1.}
+\caption{Table including comparison of metrics for hold-out and 10-fold cross validation method, for linear kernel and C = 1.}
 \label{table:votings_SVM_cross}
 \end{table}
 \subsection{Amazon Reviews}
@@ -182,11 +182,7 @@ The metrics for the dataset as classified by Support Vector Machines over differ
 \label{table:reviews_SVM}
 \end{table}
 \\
-For the feature selection, the function SelectKBest of sklearn python library was used, and based on the F-value (describes the linear dependency of two parameters), the 100 first features were chosen. The processing time decreased substantially. For this subset and for linear kernel, the accuracy increased up to 0.646 and the precision up to 0.69. In addition, the train time reduced substantially, below 1 second. The metrics for the rbf kernel were unaffected while for the polynomial kernel were lower than before. The train time was about 560 ms for linear and about 1 s for rbf kernel. Repeating the same process and selecting the first 200 features, a further 5$\%$ increase is observed. However, in the ranges below 100 and above 200, the metrics follow a descending trend. This indicates that the optimal selection lies within the first 100 and 200 features, if this approach for feature selection is followed. In any case, only a small optimization is possible with this method. More sophisticated optimization methods for feature selection would be necessary in order to achieve higher performance.
-\\
-It should be noted that when the scaling of data is skipped in preprocessing, the metrics deteriorate, with the accuracy dropping to 0.5. This is expected for Support Vector Machines because the algorithm relies on calculating distances between the data for determining the decision boundary, and primarily, the support vectors. 
-\\ 
-The table \ref{table:reviews_SVM_cross} compares the acquired metrics between hold-out and 10-fold cross-validation method. For this dataset, the hold-out method gives better metrics than the 10-fold cross validation. This indicates that the split set given by the hold-out method might not fully represent the complexity of relationships within the dataset. 
+The table \ref{table:reviews_SVM_cross} compares the acquired metrics between hold-out and 10-fold cross-validation method. 
 \begin{table}[h!]
 \centering
 \begin{tabular}{||c c c c c||} 
@@ -194,22 +190,25 @@ The table \ref{table:reviews_SVM_cross} compares the acquired metrics between ho
 Method &  Accuracy & Precision & Recall & F1 score \\ [0.5ex] 
  \hline\hline
 hold-out & 0.606 & 0.704 & 0.606 & 0.611  \\  
- 10-fold cross validation &  0.560&  0.506 & 0.560& 0.501 \\ [1ex] 
+ 10-fold cross validation &  0.567&  0.517 & 0.567& 0.509 \\ [1ex] 
  \hline
 \end{tabular}
 \caption{Table including comparison of metrics for hold-out and 10-fold cross validation method, for linear kernel and C = 1.}
 \label{table:reviews_SVM_cross}
 \end{table}
+\\
+Using the GridSearchCV method, the parameters that maximize the performance of the model is a linear kernel and C = 0.1, for which the accuracy obtained by cross-validation is 0.52. For the same parameters, the hold-out method gives an accuracy of 0.606.
+\\
+Further investigation was performed on the dataset in order to improve the metrics. In particular, two techniques were applied: oversampling and dimension reduction. After oversampling the data, the cross-validation gives an accuracy of 0.72 and a precision 0.742 for linear kernel and C = 1.0. With data scaling, the former goes up to 0.808 and the latter up to 0.847. With the dimension reduction method, an accuracy of 0.487 and a precision 0.473 is achieved. 
 
 \subsection{Road Traffic Accidents}
 \subsubsection{Preprocessing}
 \subsubsection{Results}
 
 \subsubsection*{Support Vector Machines}
-The metrics in Table \ref{table:rta_SVM} show that for either linear, rbf or poly kernels a high precision and accuracy is achieved when the model is tuned to specific parameter combinations. The best performance parameters per kernel show saturated metrics. An interpation could be that the dataset is linear separable, therefore linear kernels perform well enough and trying more complex kernels such as the non-linear ones, does not lead to any improvement of the metrics. The train time is relatively large for all of the kernels shown in \ref{table:rta_SVM}. For the linear kernels, selecting C$>$1 increases significantly the processing time (in the order of several minutes), rendering the computational cost not optimal. For rbf and poly kernels, a wider range of the hyperparameter C can be tested within a meaningful processing time, only when gamma is set low, such as $\gamma$ = 0.01 or vice-verca, a wider range of gamma can be tested only when C is chosen to be small (e.g C $\le$1). Larger values of $\gamma$ and C increase computational time, with the former forcing the model to define a decision boundary more tight around individual points, as mentioned in section \ref{svm}, and the latter leads to stricter fitting of the data. 
+The metrics in Table \ref{table:rta_SVM} show that for either linear, rbf or poly kernels a high precision and accuracy is achieved with the proper parameter combinations. It is interesting that the best performance parameters show a saturation in such a way that applying different kernels does not change the metrics. The train time is significant for all of the kernels shown in \ref{table:rta_SVM} when the hold-out method is used. For the linear kernels, the processing time scales up when selecting C$>$1, rendering the computational cost not optimal. For rbf and poly kernels, a wider range of the hyperparameter C can be tested within a meaningful processing time, only when gamma is set low, such as $\gamma$ = 0.01 or vice-verca, a wider range of gamma can be tested only when C is chosen to be small (e.g C $\le$1). Larger values of $\gamma$ and C can increase the computational time, with the former forcing the model to define a decision boundary more tight around individual points, as mentioned in section \ref{svm}, and the latter leads to stricter fitting of the data. 
 \\ 
-Therefore, the road traffic accident dataset requires simpler decision boundaries which means that C and $\gamma$ should be chosen to be small. Regarding the kernel selection, any of the tested shows same performance, therefore a linear kernel could be the choice due to its simplicity.  
-
+ 
 \begin{table}[h!]
 \centering
 \begin{tabular}{||c c c c c c c c c||} 
@@ -225,7 +224,7 @@ Therefore, the road traffic accident dataset requires simpler decision boundarie
 \label{table:rta_SVM}
 \end{table}
 \\
-Table \ref{table:rta_SVM_cross} shows the comparison of the metrics between the hold-out and the 10-fold cross-validation method, for linear kernel and C=1. The metrics are very similar for both methods. This shows that the split of the dataset with the hold-out method results in a quite representative subset of the whole, that gives similar results with the averaging that is performed by cross-validation method.
+Table \ref{table:rta_SVM_cross} shows the comparison of the metrics between the hold-out and the 10-fold cross-validation method, for linear kernel and C = 1.
 \begin{table}[h!]
 \centering
 \begin{tabular}{||c c c c c||} 
@@ -236,9 +235,12 @@ hold-out & 0.856 & 0.734 & 0.856 & 0.790  \\
  10-fold cross validation &  0.842&  0.710 & 0.842& 0.770 \\ [1ex] 
  \hline
 \end{tabular}
-\caption{Table including comparison of metrics for hold-out nad 10-fold cross validation method, for linear kernel and C = 1.}
+\caption{Table including comparison of metrics for hold-out and 10-fold cross validation method, for linear kernel and C = 1.}
 \label{table:rta_SVM_cross}
 \end{table}
+\\ 
+When searching for the optimal parameters with GridSearchCV, an accuracy of 0.844 can be achieved with rbf kernel, C = 1 and $\gamma$ = 0.1. The hold-out method with the same parameters gives an accuracy of 0.857. 
+\\ It should be noted that the method of oversampling was used to investigate its impact on the metrics. For linear kernel and C = 1.0, the accuracy is 0.485, value that is significantly lower than the metrics without oversampling.   
 \subsection{Machine Failure}
 \subsubsection{Preprocessing}
 \subsubsection{Results}
@@ -277,7 +279,8 @@ hold-out & 0.883 & 0.883 & 0.883 & 0.883  \\
 \caption{Table including comparison of metrics for hold-out nad 10-fold cross validation method, for linear kernel and C = 1.}
 \label{table:machine_SVM_cross}
 \end{table}
-
+\\
+In addition, the estimation of the best parameter with GridSearchCV function gives an accuracy of 0.921 with rbf kernel, C = 1 and gamma = 0.01. This estimate is slightly higher than the one of hold-out method for the same parameters, which gives an accuracy of 0.873. This is explained because of the difference between the way the splitting and averagin is performed by these two methods, as mentioned above.
 \section{Discussion of Findings}
 
 
