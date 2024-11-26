@@ -216,7 +216,7 @@ class SVM_classification:
  
  
   
-  def cross_validation_metrics(self, model, X_train, Y_train):
+  def cross_validation_metrics(self, model, X, Y):
   
         scoring = {
             "accuracy": 'accuracy',
@@ -224,7 +224,7 @@ class SVM_classification:
             "recall": make_scorer(recall_score, average='weighted', zero_division=0),
             "f1": make_scorer(f1_score, average='weighted')
         }
-        metrics = {metric: cross_val_score(SVC(kernel='linear'), X_train, Y_train, cv=10, scoring=scorer, n_jobs = -1).mean() for metric, scorer in
+        metrics = {metric: cross_val_score(SVC(kernel='linear'), X, Y, cv=10, scoring=scorer, n_jobs = -1).mean() for metric, scorer in
                    scoring.items()}
          
          
@@ -272,7 +272,13 @@ class SVM_classification:
      
   
     #### Voting dataset ####
-     
+
+    X = voting_data.drop(columns=['class'])
+    try:
+       y = voting_data['class'].astype(int)
+    except:
+       y = voting_data['class'] 
+         
     valid_split = 0.2
     X_train, y_train, X_valid, y_valid = self.split_dataset(voting_data, valid_split, 'class')
     
@@ -304,7 +310,7 @@ class SVM_classification:
     
     ## Cross validation method for scaled data
    
-    metrics = self.cross_validation_metrics(trained_model, X_train, y_train)
+    metrics = self.cross_validation_metrics(trained_model, X, y)
     print('10-fold cross validation for linear kernel and C=1 and scaled data') 
     print(metrics)
     
@@ -327,7 +333,12 @@ class SVM_classification:
     
     #### Machine failed ####
 
-     
+    X = machine_data.drop(columns=['fail'])
+    try:
+       y = machine_data['fail'].astype(int)
+    except:
+       y = machine_data['fail']  
+        
     valid_split = 0.2
     X_train, y_train, X_valid, y_valid = self.split_dataset(machine_data, valid_split, 'fail')
     
@@ -359,7 +370,7 @@ class SVM_classification:
     
     ## Cross validation method for scaled data
    
-    metrics = self.cross_validation_metrics(trained_model, X_train, y_train)
+    metrics = self.cross_validation_metrics(trained_model, X, y)
     print('10-fold cross validation for linear kernel and C=1 and scaled data') 
     print(metrics)
     
@@ -388,7 +399,12 @@ class SVM_classification:
       non_nan_mask = rta_data[col].notna()
       rta_data.loc[non_nan_mask, col] = label_encoder.fit_transform(rta_data.loc[non_nan_mask, col]).astype(int)
       
-      
+    X = rta_data.drop(columns=['Accident_severity'])
+    try:
+       y = rta_data['Accident_severity'].astype(int)
+    except:
+       y = rta_data['Accident_severity']
+        
     valid_split = 0.2
     X_train, y_train, X_valid, y_valid = self.split_dataset(rta_data, valid_split, 'Accident_severity')
     
@@ -420,7 +436,7 @@ class SVM_classification:
     
     ## Cross validation method for scaled data
    
-    metrics = self.cross_validation_metrics(trained_model, X_train, y_train)
+    metrics = self.cross_validation_metrics(trained_model, X, y)
     print('10-fold cross validation for linear kernel and C=1 and scaled data') 
     print(metrics)
     
@@ -465,7 +481,12 @@ class SVM_classification:
       non_nan_mask = review_data[col].notna()
       review_data.loc[non_nan_mask, col] = label_encoder.fit_transform(review_data.loc[non_nan_mask, col]).astype(int)
       
-      
+    X = review_data.drop(columns=['Class'])
+    try:
+       y = review_data['Class'].astype(int)
+    except:
+       y = review_data['Class'] 
+       
     valid_split = 0.2
     X_train, y_train, X_valid, y_valid = self.split_dataset(review_data, valid_split, 'Class')
     
@@ -497,7 +518,7 @@ class SVM_classification:
     
     ## Cross validation method for scaled data
    
-    metrics = self.cross_validation_metrics(trained_model, X_train_scaled, y_train)
+    metrics = self.cross_validation_metrics(trained_model, X, y)
     print('10-fold cross validation for linear kernel and C=1 and scaled data') 
     print(metrics)
     
