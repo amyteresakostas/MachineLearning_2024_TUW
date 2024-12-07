@@ -173,16 +173,64 @@ def r2(y_true, y_pred):
 def smape(y_true, y_pred):
     return 100 * np.mean(2 * np.abs(y_pred - y_true) / (np.abs(y_true) + np.abs(y_pred)))
 
+def cross_validate_with_kfold(model, X, y, k=5):
+    """
+    Perform k-fold cross-validation using sklearn's KFold.
+    Args:
+        model: The machine learning model to train.
+        X: Features (pandas DataFrame).
+        y: Targets (pandas Series).
+        k: Number of folds.
+    Returns:
+        metrics: A dictionary with average performance metrics over the folds.
+    """
+    kf = KFold(n_splits=k, shuffle=True, random_state=42)
+    metrics_list = []
+
+    for fold, (train_index, val_index) in enumerate(kf.split(X), start=1):
+        print(f"Starting Fold {fold}/{k}...")
+
+        # Use iloc for pandas indexing
+        X_train, X_val = X.iloc[train_index], X.iloc[val_index]
+        y_train, y_val = y.iloc[train_index], y.iloc[val_index]
+
+        # Train the model
+        start_time = time.time()
+        model.fit(X_train, y_train)
+        end_time = time.time()
+
+        print(f"Fold {fold} training completed in {end_time - start_time:.4f} seconds.")
+
+        # Validate the model
+        y_val_pred = model.predict(X_val)
+
+        # Compute metrics for this fold
+        fold_metrics = {
+            'RMSE': rmse(y_val, y_val_pred),
+            'MRE': mre(y_val, y_val_pred),
+            'Correlation': correlation(y_val, y_val_pred),
+            'R^2': r2(y_val, y_val_pred),
+            'SMAPE': smape(y_val, y_val_pred)
+        }
+        metrics_list.append(fold_metrics)
+
+    # Average the metrics over all folds
+    avg_metrics = {key: np.mean([m[key] for m in metrics_list]) for key in metrics_list[0]}
+    print("\nAverage Metrics Across All Folds:")
+    for metric, value in avg_metrics.items():
+        print(f"{metric}: {value:.4f}")
+    return avg_metrics
 
 # Step 5: Test the implementation
 if __name__ == "__main__":
     os.chdir("C:/Users/ameli/OneDrive/Studium/TU Wien/WS2024/ML/Exercise 2")
 
     import sys
-    log_file = open("LMM_ML_Ex2.txt", "w")
-    sys.stdout = log_file
+    #log_file = open("LMM_ML_Ex2.txt", "w")
+    #sys.stdout = log_file
 
-    ### CT DATASET ###
+    ##### CT DATASET #####
+    ### WITHOUT CROSS VALIDATION ###
     CT_train = pd.read_csv("CT_train.csv")
     CT_test = pd.read_csv("CT_test.csv")
     # Split data into features and targets
@@ -206,21 +254,30 @@ if __name__ == "__main__":
     print(f"R^2 Score: {r2(y_test, y_pred):.4f}")
     print(f"SMAPE: {smape(y_test, y_pred):.4f}")
 
+    ### WITH CROSS VALIDATION ###
+    start = time.time()
+    rf = RandomForestRegressor(n_estimators=10, max_depth=5)
+    k = 5
+    print(f"Performing {k}-Fold Cross-Validation...")
+    avg_metrics = cross_validate_with_kfold(rf, X_train, y_train, k=k)
+    print(avg_metrics)
+    end = time.time()
+    print(f"Total Time for Cross-Validation: {end - start:.4f} seconds")
+    
 
-    ### MPG DATASET ###
+    ##### MPG DATASET #####
+    ### WITHOUT CROSS VALIDATION ###
     MPG_train = pd.read_csv("MPG_train.csv")
     MPG_test = pd.read_csv("MPG_test.csv")
     X_train = MPG_train.drop(columns='mpg')
     y_train = MPG_train['mpg']
     X_test = MPG_test.drop(columns='mpg')
     y_test = MPG_test['mpg']
-
     start = time.time()
     rf = RandomForestRegressor()
     rf.fit(X_train, y_train)
     end = time.time()
     print(f"Total Time to Train Random Forest: {end - start:.4f} seconds")
-
     y_pred = rf.predict(X_test)
     # Make predictions
     y_pred = rf.predict(X_test)
@@ -232,4 +289,14 @@ if __name__ == "__main__":
     print(f"R^2 Score: {r2(y_test, y_pred):.4f}")
     print(f"SMAPE: {smape(y_test, y_pred):.4f}")
 
-    log_file.close()
+    ### WITH CROSS VALIDATION ###
+    start = time.time()
+    rf = RandomForestRegressor(n_estimators=10, max_depth=5)
+    k = 5
+    print(f"Performing {k}-Fold Cross-Validation...")
+    avg_metrics = cross_validate_with_kfold(rf, X_train, y_train, k=k)
+    print(avg_metrics)
+    end = time.time()
+    print(f"Total Time for Cross-Validation: {end - start:.4f} seconds")
+
+    #log_file.close()
