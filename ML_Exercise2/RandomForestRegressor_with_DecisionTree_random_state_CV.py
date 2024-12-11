@@ -289,6 +289,9 @@ y_test_CT = df_CT_test["critical_temp"]
 ### Hyperparameter tuning with crossvalidation ###
 
 def correlation(y_true, y_pred):
+    if np.var(y_true) == 0 or np.var(y_pred) == 0:
+        return 0.0
+    
     return np.corrcoef(y_true, y_pred)[0, 1]
 
 
