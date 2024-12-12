@@ -4,8 +4,10 @@ from sklearn.model_selection import KFold
 import time
 import pandas as pd
 import os
-from sklearn.preprocessing import StandardScaler
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
 import sys
+from itertools import product
 
 # Step 1: Define functions for the metrics
 def rmse(y_true, y_pred):
@@ -101,7 +103,7 @@ class DecisionTree:
 
 # Step 3: Define the Random Forest Regressor
 class RandomForest:
-    def __init__(self, n_estimators=10, max_depth=None, min_samples_split=2, max_features=None, n_jobs=-1):
+    def __init__(self, n_estimators=10, max_depth=None, min_samples_split=2, max_features=None, n_jobs=8):
         self.n_estimators = n_estimators
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
@@ -134,7 +136,7 @@ class RandomForest:
 
 
 # Step 4: Define Crossvalidation Function
-def cross_validate_random_forest(X, y, n_folds=5, n_estimators=10, max_depth=None, min_samples_split=2, max_features=None, n_jobs=-1):
+def cross_validate_random_forest(X, y, n_folds=5, n_estimators=10, max_depth=None, min_samples_split=2, max_features=None, n_jobs=8):
     kf = KFold(n_splits=n_folds, shuffle=True, random_state=42)
     all_metrics = []
     total_train_time = 0
@@ -171,11 +173,145 @@ def cross_validate_random_forest(X, y, n_folds=5, n_estimators=10, max_depth=Non
     return avg_metrics, total_train_time
 
 
+
 # Step 5: Test the implementation
+if __name__ == "__main__":
+    ### Load Datasets ###
+    os.chdir("C:/Users/ameli/OneDrive/Studium/TU Wien/WS2024/ML/Exercise 2")
+    # MPG dataset
+    df_MPG_test = pd.read_csv('MPG_train.csv', sep=",")
+    df_MPG_train = pd.read_csv('MPG_test.csv', sep=",")
+    X_train_MPG = df_MPG_train.drop(columns="mpg", axis=1)
+    y_train_MPG = df_MPG_train["mpg"]
+    X_test_MPG = df_MPG_test.drop(columns="mpg", axis=1)
+    y_test_MPG = df_MPG_test["mpg"]
+
+    # Superconductor dataset
+    df_CT_test = pd.read_csv('CT_test.csv', sep=",")
+    df_CT_train = pd.read_csv('CT_train.csv', sep=",")
+    X_train_CT = df_CT_train.drop(columns="critical_temp", axis=1)
+    y_train_CT = df_CT_train["critical_temp"]
+    X_test_CT = df_CT_test.drop(columns="critical_temp", axis=1)
+    y_test_CT = df_CT_test["critical_temp"]
+
+    def grid_search_random_forest(X, y, param_grid, n_folds=5):
+        param_combinations = list(product(
+            param_grid['n_estimators'],
+            param_grid['max_depth'],
+            param_grid['min_samples_split'],
+            param_grid['max_features']
+        ))
+        results = []
+        start_time = time.time()  # Start tracking time
+        for params in param_combinations:
+            print(f"Testing parameters: {dict(zip(param_grid.keys(), params))}")
+            metrics, train_time = cross_validate_random_forest(
+                X, y,
+                n_folds=n_folds,
+                n_estimators=params[0],
+                max_depth=params[1],
+                min_samples_split=params[2],
+                max_features=params[3]
+            )
+            results.append({
+                'n_estimators': params[0],
+                'max_depth': params[1],
+                'min_samples_split': params[2],
+                'max_features': params[3],
+                **metrics,
+                'train_time': train_time
+            })
+        total_time = time.time() - start_time  # Calculate total elapsed time
+        results_df = pd.DataFrame(results)
+        # Sort by RMSE for best hyperparameter selection
+        best_row = results_df.loc[results_df['rmse'].idxmin()]
+        best_parameters = {
+            'n_estimators': best_row['n_estimators'],
+            'max_depth': best_row['max_depth'],
+            'min_samples_split': best_row['min_samples_split'],
+            'max_features': best_row['max_features']
+        }
+        best_rmse = best_row['rmse']
+        # Print the results DataFrame and the best parameters
+        print(results_df.to_string(index=False))  # Ensures all columns print side-by-side
+        print('Best hyperparameters are:', best_parameters)
+        print('Best score is:', best_rmse)
+        print(f'Total grid search time: {total_time:.2f} seconds')
+        return results_df, best_parameters, best_rmse, total_time
+
+    # Define the grid space
+    gr_space = {
+        'n_estimators': [50, 100],
+        'max_depth': [None, 20],
+        'min_samples_split': [5, 30],
+        'max_features': [int(np.sqrt(X_train_MPG.shape[1])), int(np.log(X_train_MPG.shape[1]))]
+    }
+
+    # Run grid search
+    print("------------------------------------")
+    print("MPG Dataset")
+    grid_results_MPG = grid_search_random_forest(X_train_MPG, y_train_MPG, gr_space, n_folds=5)
+    results_df_MPG, best_parameters_MPG, best_rmse_MPG, total_time_MPG = grid_results_MPG
+    #print(results_df_MPG.sort_values(by='rmse'))
+    print("------------------------------------")
+    print("CT Dataset")
+    grid_results_CT = grid_search_random_forest(X_train_CT, y_train_CT, gr_space, n_folds=5)
+    results_df_CT, best_parameters_CT, best_rmse_CT, total_time_CT = grid_results_CT
+    # print(results_df_CT.sort_values(by='rmse'))
+
+    ### FIT BEST MODEL ON TEST DATASETS ###
+    print("------------------------------------")
+    print("MPG: TEST DATASET")
+    _, best_parameters, _, _ = grid_results_MPG
+    best_model = RandomForest(
+        n_estimators=int(best_parameters['n_estimators']),  # Ensure this is an int
+        max_depth=None if pd.isna(best_parameters['max_depth']) else int(best_parameters['max_depth']),
+        min_samples_split=int(best_parameters['min_samples_split']),  # Ensure this is an int
+        max_features=None if pd.isna(best_parameters['max_features']) else int(best_parameters['max_features']),
+        n_jobs=8
+    )
+    best_model.fit(X_train_MPG, y_train_MPG)
+    y_pred_test = best_model.predict(X_test_MPG)
+    test_metrics = {
+        'rmse': rmse(y_test_MPG, y_pred_test),
+        'mre': mre(y_test_MPG, y_pred_test),
+        'r_squared': r_squared(y_test_MPG, y_pred_test),
+        'smape': smape(y_test_MPG, y_pred_test),
+        'correlation': correlation(y_test_MPG, y_pred_test)
+    }
+    print("Test Dataset Metrics:")
+    for metric, value in test_metrics.items():
+        print(f"{metric}: {value:.4f}")
+
+
+    print("------------------------------------")
+    print("CT: TEST DATASET")
+    _, best_parameters, _, _ = grid_results_MPG
+    best_model = RandomForest(
+        n_estimators=int(best_parameters['n_estimators']),  # Ensure this is an int
+        max_depth=None if pd.isna(best_parameters['max_depth']) else int(best_parameters['max_depth']),
+        min_samples_split=int(best_parameters['min_samples_split']),  # Ensure this is an int
+        max_features=None if pd.isna(best_parameters['max_features']) else int(best_parameters['max_features']),
+        n_jobs=8
+    )
+    best_model.fit(X_train_CT, y_train_CT)
+    y_pred_test = best_model.predict(X_test_CT)
+    test_metrics = {
+        'rmse': rmse(y_test_CT, y_pred_test),
+        'mre': mre(y_test_CT, y_pred_test),
+        'r_squared': r_squared(y_test_CT, y_pred_test),
+        'smape': smape(y_test_CT, y_pred_test),
+        'correlation': correlation(y_test_CT, y_pred_test)
+    }
+    print("Test Dataset Metrics:")
+    for metric, value in test_metrics.items():
+        print(f"{metric}: {value:.4f}")
+
+"""
 if __name__ == "__main__":
     os.chdir("C:/Users/ameli/OneDrive/Studium/TU Wien/WS2024/ML/Exercise 2")
     os.makedirs("plot", exist_ok=True)
-
+    
     #log_file = open("ML_Ex2_Existing_RF_performanceMeasures.txt", "w")
     #sys.stdout = log_file
     num_cpus = os.cpu_count()
@@ -194,7 +330,7 @@ if __name__ == "__main__":
     ### WITHOUT CV ###
     print("----------------------------------------------------------------------------------------------")
     print("MPG - Without CV:")
-    rf = RandomForest(n_estimators=10, max_depth=5, min_samples_split=2, n_jobs=num_cpus, max_features=30)
+    rf = RandomForest(n_estimators=100, max_depth=5, min_samples_split=2, n_jobs=num_cpus, max_features=30)
     start_time = time.time()
     rf.fit(X_train, y_train)
     train_time = time.time() - start_time
@@ -213,10 +349,47 @@ if __name__ == "__main__":
     print("----------------------------------------------------------------------------------------------")
     print("CT - With CV, Without Scaling:")
     metrics, train_time = cross_validate_random_forest(X_train, y_train, n_folds=5,
-                                                       n_estimators=10, max_depth=5,
+                                                       n_estimators=100, max_depth=5,
+                                                       min_samples_split=2, n_jobs=8, max_features=30)
+    print("Cross-Validation Metrics:", metrics)
+    print("Training Time:", train_time, "seconds")
+
+    print("------------------------------------")
+    print("CT Dataset")
+    MPG_train = pd.read_csv("CT_train.csv")
+    MPG_test = pd.read_csv("CT_test.csv")
+    X_train = MPG_train.drop('critical_temp', axis=1);
+    y_train = MPG_train['critical_temp']
+    X_test = MPG_test.drop('critical_temp', axis=1);
+    y_test = MPG_test['critical_temp']
+
+    ### WITHOUT CV ###
+    print("----------------------------------------------------------------------------------------------")
+    print("CT - Without CV:")
+    rf = RandomForest(n_estimators=50, max_depth=5, min_samples_split=2, n_jobs=num_cpus, max_features=30)
+    start_time = time.time()
+    rf.fit(X_train, y_train)
+    train_time = time.time() - start_time
+    y_pred = rf.predict(X_test)
+    metrics = {
+        'rmse': rmse(y_test, y_pred),
+        'mre': mre(y_test, y_pred),
+        'r_squared': r_squared(y_test, y_pred),
+        'smape': smape(y_test, y_pred),
+        'correlation': correlation(y_test, y_pred)
+    }
+    print("Metrics:", metrics)
+    print("Training Time:", train_time, "seconds")
+
+    ### WITH CV ###
+    print("----------------------------------------------------------------------------------------------")
+    print("CT - With CV, Without Scaling:")
+    metrics, train_time = cross_validate_random_forest(X_train, y_train, n_folds=5,
+                                                       n_estimators=50, max_depth=5,
                                                        min_samples_split=2, n_jobs=8, max_features=30)
     print("Cross-Validation Metrics:", metrics)
     print("Training Time:", train_time, "seconds")
 
 
     #log_file.close()
+"""
