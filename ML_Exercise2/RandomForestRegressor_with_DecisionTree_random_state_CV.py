@@ -31,7 +31,7 @@ class DecisionTree():
         self.value = target.mean()
 
         # Stopping criteria
-        if self.n_samples < self.min_sample_split or self.depth >= self.max_depth:
+        if self.n_samples < self.min_sample_split or (self.max_depth is not None and self.depth >= self.max_depth):
             return
 
         best_feature, best_threshold, best_reduction = self._find_best_split(features, target)
@@ -207,9 +207,6 @@ class RandomForest:
 
     def fit(self, X, y):
 
-        # X = x_train
-        # y = y_train
-
         self.trees = []
 
         from joblib import Parallel, delayed
@@ -241,7 +238,6 @@ class RandomForest:
 
     def predict(self, X):
 
-        # X = X_test
 
         if not self.trees:
             print('The tree list is empty, you must train the model before making any prediction')
@@ -291,7 +287,7 @@ y_test_CT = df_CT_test["critical_temp"]
 def correlation(y_true, y_pred):
     if np.var(y_true) == 0 or np.var(y_pred) == 0:
         return 0.0
-    
+
     return np.corrcoef(y_true, y_pred)[0, 1]
 
 
@@ -305,8 +301,8 @@ def hyperparameter_tuning(X, y):
 
     gr_space = {
         'n_estimators': [50, 100],
-        'max_depth': [None, 10, 20],
-        'min_samples_split': [2, 5, 10],
+        'max_depth': [None, 20],
+        'min_samples_split': [5, 30],
         'max_features': [int(np.sqrt(X.shape[1])), int(np.log(X.shape[1]))]
     }
 
