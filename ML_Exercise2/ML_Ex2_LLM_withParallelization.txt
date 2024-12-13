@@ -1,0 +1,95 @@
+C:\Users\ameli\venv\Scripts\python.exe "C:\Users\ameli\OneDrive\Studium\TU Wien\WS2024\ML\Exercise 2\ML_Ex2_LLM_withMultiprocessing.py" 
+------------------------------------
+MPG Dataset
+Testing parameters: {'n_estimators': 50, 'max_depth': None, 'min_samples_split': 5, 'max_features': 6}
+Testing parameters: {'n_estimators': 50, 'max_depth': None, 'min_samples_split': 5, 'max_features': 3}
+Testing parameters: {'n_estimators': 50, 'max_depth': None, 'min_samples_split': 30, 'max_features': 6}
+Testing parameters: {'n_estimators': 50, 'max_depth': None, 'min_samples_split': 30, 'max_features': 3}
+Testing parameters: {'n_estimators': 50, 'max_depth': 20, 'min_samples_split': 5, 'max_features': 6}
+Testing parameters: {'n_estimators': 50, 'max_depth': 20, 'min_samples_split': 5, 'max_features': 3}
+Testing parameters: {'n_estimators': 50, 'max_depth': 20, 'min_samples_split': 30, 'max_features': 6}
+Testing parameters: {'n_estimators': 50, 'max_depth': 20, 'min_samples_split': 30, 'max_features': 3}
+Testing parameters: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 5, 'max_features': 6}
+Testing parameters: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 5, 'max_features': 3}
+Testing parameters: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 30, 'max_features': 6}
+Testing parameters: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 30, 'max_features': 3}
+Testing parameters: {'n_estimators': 100, 'max_depth': 20, 'min_samples_split': 5, 'max_features': 6}
+Testing parameters: {'n_estimators': 100, 'max_depth': 20, 'min_samples_split': 5, 'max_features': 3}
+Testing parameters: {'n_estimators': 100, 'max_depth': 20, 'min_samples_split': 30, 'max_features': 6}
+Testing parameters: {'n_estimators': 100, 'max_depth': 20, 'min_samples_split': 30, 'max_features': 3}
+ n_estimators  max_depth  min_samples_split  max_features     rmse      mre  r_squared     smape  correlation  train_time
+           50        NaN                  5             6 3.876845 0.141539   0.703347 13.425935     0.904049   14.998644
+           50        NaN                  5             3 5.293366 0.205260   0.447401 18.712836     0.874052   13.777729
+           50        NaN                 30             6 5.588444 0.219538   0.383134 19.907661     0.870691   12.897988
+           50        NaN                 30             3 6.427207 0.259443   0.184850 23.160397     0.875594   12.741896
+           50       20.0                  5             6 3.706691 0.133736   0.728892 12.717053     0.913819   12.898751
+           50       20.0                  5             3 5.235089 0.205338   0.460902 18.760351     0.869279   12.489472
+           50       20.0                 30             6 5.718107 0.225788   0.357802 20.449564     0.863021   12.336776
+           50       20.0                 30             3 6.330528 0.253725   0.212241 22.782379     0.850378   12.210469
+          100        NaN                  5             6 3.928409 0.145183   0.696601 13.639001     0.906501   13.087847
+          100        NaN                  5             3 5.305113 0.207352   0.445202 19.025585     0.892606   12.809464
+          100        NaN                 30             6 5.691982 0.225496   0.363416 20.338528     0.868264   12.438066
+          100        NaN                 30             3 6.403915 0.258710   0.191970 23.167267     0.859652   12.258321
+          100       20.0                  5             6 3.957939 0.143202   0.691517 13.629289     0.894171   13.044350
+          100       20.0                  5             3 5.448281 0.213004   0.415194 19.454523     0.890471   12.819849
+          100       20.0                 30             6 5.779004 0.227912   0.342627 20.619607     0.869565   12.136421
+          100       20.0                 30             3 6.335099 0.254868   0.209894 22.839821     0.879662   12.189518
+Best hyperparameters are: {'n_estimators': 50.0, 'max_depth': 20.0, 'min_samples_split': 5.0, 'max_features': 6.0}
+Best score is: 3.706691489334555
+Total grid search time: 205.54 seconds
+------------------------------------
+CT Dataset
+Testing parameters: {'n_estimators': 50, 'max_depth': None, 'min_samples_split': 5, 'max_features': 6}
+Testing parameters: {'n_estimators': 50, 'max_depth': None, 'min_samples_split': 5, 'max_features': 3}
+Testing parameters: {'n_estimators': 50, 'max_depth': None, 'min_samples_split': 30, 'max_features': 6}
+Testing parameters: {'n_estimators': 50, 'max_depth': None, 'min_samples_split': 30, 'max_features': 3}
+Testing parameters: {'n_estimators': 50, 'max_depth': 20, 'min_samples_split': 5, 'max_features': 6}
+Testing parameters: {'n_estimators': 50, 'max_depth': 20, 'min_samples_split': 5, 'max_features': 3}
+Testing parameters: {'n_estimators': 50, 'max_depth': 20, 'min_samples_split': 30, 'max_features': 6}
+Testing parameters: {'n_estimators': 50, 'max_depth': 20, 'min_samples_split': 30, 'max_features': 3}
+Testing parameters: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 5, 'max_features': 6}
+Testing parameters: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 5, 'max_features': 3}
+Testing parameters: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 30, 'max_features': 6}
+Testing parameters: {'n_estimators': 100, 'max_depth': None, 'min_samples_split': 30, 'max_features': 3}
+Testing parameters: {'n_estimators': 100, 'max_depth': 20, 'min_samples_split': 5, 'max_features': 6}
+Testing parameters: {'n_estimators': 100, 'max_depth': 20, 'min_samples_split': 5, 'max_features': 3}
+Testing parameters: {'n_estimators': 100, 'max_depth': 20, 'min_samples_split': 30, 'max_features': 6}
+Testing parameters: {'n_estimators': 100, 'max_depth': 20, 'min_samples_split': 30, 'max_features': 3}
+ n_estimators  max_depth  min_samples_split  max_features      rmse      mre  r_squared     smape  correlation  train_time
+           50        NaN                  5             6 10.198203 7.103801   0.911711 29.648942     0.955153 2326.671651
+           50        NaN                  5             3 10.336271 7.291510   0.909307 30.725901     0.954062 1247.868316
+           50        NaN                 30             6 11.874759 8.851133   0.880304 36.967828     0.939228 2336.128129
+           50        NaN                 30             3 12.293300 9.611231   0.871731 38.883639     0.935093 1071.470271
+           50       20.0                  5             6 10.189810 6.691492   0.911849 29.668994     0.955240 2605.130108
+           50       20.0                  5             3 10.424609 7.481557   0.907742 30.891565     0.953246 1321.948822
+           50       20.0                 30             6 11.843199 9.075604   0.880955 36.918468     0.939539 2197.332530
+           50       20.0                 30             3 12.311774 9.465953   0.871335 38.955108     0.934853 1093.026599
+          100        NaN                  5             6 10.127215 7.038762   0.912934 29.498072     0.955804 5175.830678
+          100        NaN                  5             3 10.352603 6.928470   0.909023 30.749764     0.953908 2690.551100
+          100        NaN                 30             6 11.825794 8.883759   0.881288 36.849550     0.939759 4309.689040
+          100        NaN                 30             3 12.210585 9.668323   0.873450 38.847016     0.936048 2227.390035
+          100       20.0                  5             6 10.163718 7.076166   0.912306 29.640658     0.955507 5186.690350
+          100       20.0                  5             3 10.380018 6.962098   0.908540 30.884372     0.953699 2684.918542
+          100       20.0                 30             6 11.773996 8.784111   0.882329 36.816497     0.940323 4468.276884
+          100       20.0                 30             3 12.250167 9.522405   0.872620 38.919187     0.935627 2335.753119
+Best hyperparameters are: {'n_estimators': 100.0, 'max_depth': nan, 'min_samples_split': 5.0, 'max_features': 6.0}
+Best score is: 10.127214937659335
+Total grid search time: 43400.87 seconds
+------------------------------------
+MPG: TEST DATASET
+Test Dataset Metrics:
+rmse: 3.9876
+mre: 0.1345
+r_squared: 0.7420
+smape: 12.9747
+correlation: 0.9100
+------------------------------------
+CT: TEST DATASET
+Test Dataset Metrics:
+rmse: 9.5002
+mre: 1.5103
+r_squared: 0.9216
+smape: 28.5234
+correlation: 0.9602
+
+Process finished with exit code 0

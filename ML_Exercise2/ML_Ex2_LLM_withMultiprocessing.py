@@ -239,73 +239,77 @@ if __name__ == "__main__":
         print(f'Total grid search time: {total_time:.2f} seconds')
         return results_df, best_parameters, best_rmse, total_time
 
-    # Define the grid space
-    gr_space = {
+    print("------------------------------------")
+    print("MPG Dataset")
+    gr_space_MPG = {
         'n_estimators': [50, 100],
         'max_depth': [None, 20],
         'min_samples_split': [5, 30],
         'max_features': [int(np.sqrt(X_train_MPG.shape[1])), int(np.log(X_train_MPG.shape[1]))]
     }
-
-    # Run grid search
-    print("------------------------------------")
-    print("MPG Dataset")
-    grid_results_MPG = grid_search_random_forest(X_train_MPG, y_train_MPG, gr_space, n_folds=5)
+    grid_results_MPG = grid_search_random_forest(X_train_MPG, y_train_MPG, gr_space_MPG, n_folds=5)
     results_df_MPG, best_parameters_MPG, best_rmse_MPG, total_time_MPG = grid_results_MPG
     #print(results_df_MPG.sort_values(by='rmse'))
+
     print("------------------------------------")
     print("CT Dataset")
-    grid_results_CT = grid_search_random_forest(X_train_CT, y_train_CT, gr_space, n_folds=5)
+    gr_space_CT = {
+        'n_estimators': [50, 100],
+        'max_depth': [None, 20],
+        'min_samples_split': [5, 30],
+        'max_features': [int(np.sqrt(X_train_CT.shape[1])), int(np.log(X_train_CT.shape[1]))]
+    }
+    grid_results_CT = grid_search_random_forest(X_train_CT, y_train_CT, gr_space_CT, n_folds=5)
     results_df_CT, best_parameters_CT, best_rmse_CT, total_time_CT = grid_results_CT
     # print(results_df_CT.sort_values(by='rmse'))
 
     ### FIT BEST MODEL ON TEST DATASETS ###
     print("------------------------------------")
     print("MPG: TEST DATASET")
-    _, best_parameters, _, _ = grid_results_MPG
-    best_model = RandomForest(
-        n_estimators=int(best_parameters['n_estimators']),  # Ensure this is an int
-        max_depth=None if pd.isna(best_parameters['max_depth']) else int(best_parameters['max_depth']),
-        min_samples_split=int(best_parameters['min_samples_split']),  # Ensure this is an int
-        max_features=None if pd.isna(best_parameters['max_features']) else int(best_parameters['max_features']),
+    _, best_parameters_MPG, _, _ = grid_results_MPG
+    best_model_MPG = RandomForest(
+        n_estimators=int(best_parameters_MPG['n_estimators']),  # Ensure this is an int
+        max_depth=None if pd.isna(best_parameters_MPG['max_depth']) else int(best_parameters_MPG['max_depth']),
+        min_samples_split=int(best_parameters_MPG['min_samples_split']),  # Ensure this is an int
+        max_features=None if pd.isna(best_parameters_MPG['max_features']) else int(best_parameters_MPG['max_features']),
         n_jobs=8
     )
-    best_model.fit(X_train_MPG, y_train_MPG)
-    y_pred_test = best_model.predict(X_test_MPG)
-    test_metrics = {
-        'rmse': rmse(y_test_MPG, y_pred_test),
-        'mre': mre(y_test_MPG, y_pred_test),
-        'r_squared': r_squared(y_test_MPG, y_pred_test),
-        'smape': smape(y_test_MPG, y_pred_test),
-        'correlation': correlation(y_test_MPG, y_pred_test)
+    best_model_MPG.fit(X_train_MPG, y_train_MPG)
+    y_pred_test_MPG = best_model_MPG.predict(X_test_MPG)
+    test_metrics_MPG = {
+        'rmse': rmse(y_test_MPG, y_pred_test_MPG),
+        'mre': mre(y_test_MPG, y_pred_test_MPG),
+        'r_squared': r_squared(y_test_MPG, y_pred_test_MPG),
+        'smape': smape(y_test_MPG, y_pred_test_MPG),
+        'correlation': correlation(y_test_MPG, y_pred_test_MPG)
     }
     print("Test Dataset Metrics:")
-    for metric, value in test_metrics.items():
+    for metric, value in test_metrics_MPG.items():
         print(f"{metric}: {value:.4f}")
-
 
     print("------------------------------------")
     print("CT: TEST DATASET")
-    _, best_parameters, _, _ = grid_results_MPG
-    best_model = RandomForest(
-        n_estimators=int(best_parameters['n_estimators']),  # Ensure this is an int
-        max_depth=None if pd.isna(best_parameters['max_depth']) else int(best_parameters['max_depth']),
-        min_samples_split=int(best_parameters['min_samples_split']),  # Ensure this is an int
-        max_features=None if pd.isna(best_parameters['max_features']) else int(best_parameters['max_features']),
+    _, best_parameters_CT, _, _ = grid_results_CT
+    best_model_CT = RandomForest(
+        n_estimators=int(best_parameters_CT['n_estimators']),  # Ensure this is an int
+        max_depth=None if pd.isna(best_parameters_CT['max_depth']) else int(best_parameters_CT['max_depth']),
+        min_samples_split=int(best_parameters_CT['min_samples_split']),  # Ensure this is an int
+        max_features=None if pd.isna(best_parameters_CT['max_features']) else int(best_parameters_CT['max_features']),
         n_jobs=8
     )
-    best_model.fit(X_train_CT, y_train_CT)
-    y_pred_test = best_model.predict(X_test_CT)
-    test_metrics = {
-        'rmse': rmse(y_test_CT, y_pred_test),
-        'mre': mre(y_test_CT, y_pred_test),
-        'r_squared': r_squared(y_test_CT, y_pred_test),
-        'smape': smape(y_test_CT, y_pred_test),
-        'correlation': correlation(y_test_CT, y_pred_test)
+    best_model_CT.fit(X_train_CT, y_train_CT)
+    y_pred_test_CT = best_model_CT.predict(X_test_CT)
+    test_metrics_CT = {
+        'rmse': rmse(y_test_CT, y_pred_test_CT),
+        'mre': mre(y_test_CT, y_pred_test_CT),
+        'r_squared': r_squared(y_test_CT, y_pred_test_CT),
+        'smape': smape(y_test_CT, y_pred_test_CT),
+        'correlation': correlation(y_test_CT, y_pred_test_CT)
     }
     print("Test Dataset Metrics:")
-    for metric, value in test_metrics.items():
+    for metric, value in test_metrics_CT.items():
         print(f"{metric}: {value:.4f}")
+
 
 """
 if __name__ == "__main__":
